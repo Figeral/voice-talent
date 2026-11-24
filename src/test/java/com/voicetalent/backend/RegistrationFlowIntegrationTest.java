@@ -77,6 +77,17 @@ class RegistrationFlowIntegrationTest {
   }
 
   @Test
+  void rootIndexPageIsPublic() throws Exception {
+    mockMvc.perform(get("/"))
+        .andExpect(status().isOk())
+        .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl("index.html"));
+
+    mockMvc.perform(get("/index.html"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Voice Talent Backend API")));
+  }
+
+  @Test
   void uploadValidationRejectsBadMimeAndDuration() throws Exception {
     mockMvc.perform(post("/api/registration/uploads")
             .contentType(MediaType.APPLICATION_JSON)
