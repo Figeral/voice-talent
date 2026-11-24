@@ -49,13 +49,25 @@ services:
       - uploads_data:/app/uploads
     networks:
       - db-net
-      - app-net
+      - vt-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=vt-net"
+      - "traefik.http.routers.voice-talent-api.rule=Host(`vt-api.mana-matrix.com`)"
+      - "traefik.http.routers.voice-talent-api.entrypoints=websecure"
+      - "traefik.http.routers.voice-talent-api.tls.certresolver=cloudflare"
+      - "traefik.http.services.voice-talent-api.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.voice-talent-api-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.voice-talent-api-headers.headers.customResponseHeaders.X-Frame-Options=DENY"
+      - "traefik.http.middlewares.voice-talent-api-headers.headers.customResponseHeaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.routers.voice-talent-api.middlewares=voice-talent-api-headers"
 
 networks:
   db-net:
     driver: bridge
     internal: true
-  app-net:
+  vt-net:
+    name: vt-net
     driver: bridge
 
 volumes:
