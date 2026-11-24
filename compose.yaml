@@ -1,5 +1,5 @@
 services:
-  postgres:
+  vt-postgres:
     image: postgres:16-alpine
     container_name: voice-talent-postgres
     restart: unless-stopped
@@ -26,12 +26,12 @@ services:
     container_name: voice-talent-backend
     restart: unless-stopped
     depends_on:
-      postgres:
+      vt-postgres:
         condition: service_healthy
     ports:
       - "127.0.0.1:${BACKEND_PORT:-18080}:8080"
     environment:
-      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-voicetalent}
+      DATABASE_URL: jdbc:postgresql://vt-postgres:5432/${POSTGRES_DB:-voicetalent}
       DATABASE_USERNAME: ${POSTGRES_USER:-voicetalent}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-voicetalent_dev}
       JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
