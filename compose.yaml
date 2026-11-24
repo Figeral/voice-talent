@@ -49,14 +49,25 @@ services:
       - uploads_data:/app/uploads
     networks:
       - db-net
-      - app-net
+      - tchinda-ai
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=tchinda-ai"
+      - "traefik.http.routers.vt-api.rule=Host(`vt-api.mana-matrix.com`)"
+      - "traefik.http.routers.vt-api.entrypoints=websecure"
+      - "traefik.http.routers.vt-api.tls.certresolver=cloudflare"
+      - "traefik.http.services.vt-api.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.vt-api-headers-prod.headers.customRequestHeaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.vt-api-headers-prod.headers.customResponseHeaders.X-Frame-Options=DENY"
+      - "traefik.http.middlewares.vt-api-headers-prod.headers.customResponseHeaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.routers.vt-api.middlewares=vt-api-headers-prod"
 
 networks:
   db-net:
     driver: bridge
     internal: true
-  app-net:
-    driver: bridge
+  tchinda-ai:
+    external: true
 
 volumes:
   pgdata:
