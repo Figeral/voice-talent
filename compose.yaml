@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: voice-talent-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-voicetalent}
+      POSTGRES_USER: ${POSTGRES_USER:-voicetalent}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-voicetalent_dev}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-voicetalent} -d ${POSTGRES_DB:-voicetalent}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: voice-talent-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-voicetalent}
+      DATABASE_USERNAME: ${POSTGRES_USER:-voicetalent}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-voicetalent_dev}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      STORAGE_MODE: ${STORAGE_MODE:-local}
+      STORAGE_LOCAL_DIR: /app/uploads
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+      REGISTRATION_ENFORCE_WINDOW: ${REGISTRATION_ENFORCE_WINDOW:-false}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme123}
+      TURNSTILE_ENABLED: ${TURNSTILE_ENABLED:-false}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+    volumes:
+      - uploads_data:/app/uploads
+
+volumes:
+  pgdata:
+  uploads_data:
